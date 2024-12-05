@@ -3,32 +3,56 @@ version: 0.2
 phases:
   install:
     commands:
-      # Skip installing Apache, PHP, and WordPress since it's already in the AMI
+      # Skip installing Apache, PHP, and WordPress since they are already pre-configured in the AMI
       - echo "Skipping installation of dependencies as they are already pre-configured in the AMI."
-
+      
   pre_build:
-    # Any pre-build tasks you may need, like environment variable setup
+    # Set environment variables for MySQL connection or any other required settings
     commands:
       - echo "Running pre-build steps"
+      - echo "MYSQL_HOST=localhost" >> ~/.bashrc
+      - echo "MYSQL_USER=jyoti_user" >> ~/.bashrc
+      - echo "MYSQL_PASSWORD=shpreety2013." >> ~/.bashrc
+      - echo "MYSQL_DB=jyoti" >> ~/.bashrc
 
   build:
-    # Build process (e.g., copying custom themes, plugins, or configurations)
+    # Build process (copy custom themes, plugins, etc.)
     commands:
       - echo "Starting WordPress deployment..."
+      - cd /tmp
+
+      # Copy updated WordPress files (themes, plugins, etc.) to the correct Apache root
+      - sudo cp -R wordpress/* /var/www/html/     # Copy files to Apache root
+
+      # Set correct ownership and permissions for WordPress files
+      - sudo chown -R www-data:www-data /var/www/html/
+      - sudo chmod -R 755 /var/www/html/wordpress/
+      
+      # Ensure necessary directories exist and have correct permissions
+      - sudo mkdir -p /var/www/html/wordpress/wp-content/uploads
+      - sudo chown -R www-data:www-data /var/www/html/wordpress/wp-content/uploads/
       - echo "WordPress files deployed successfully."
 
   post_build:
-    # Post-build actions (e.g., configuring wp-config.php or setting up database)
+    # Post-build actions: configure wp-config.php and restart Apache
     commands:
       - echo "Configuring wp-config.php..."
-      # Restart Apache web server
+      
+      # Update wp-config.php with the environment variables or hardcoded values
+      - sudo sed -i 's/DB_NAME/jyoti/g' /var/www/html/wordpress/wp-config.php
+      - sudo sed -i 's/DB_USER/jyoti_user/g' /var/www/html/wordpress/wp-config.php  # Correct format without @localhost
+      - sudo sed -i 's/DB_PASSWORD/shpreety2013./g' /var/www/html/wordpress/wp-config.php
+      - sudo sed -i 's/DB_HOST/localhost/g' /var/www/html/wordpress/wp-config.php  # Set DB_HOST to localhost (since MySQL is on the same EC2 instance)
+
+      - echo "wp-config.php configured successfully."
+
+      # Restart Apache to apply changes
       - echo "Restarting Apache web server..."
       - sudo systemctl restart apache2
 
 artifacts:
   files:
-    - wp-config.php       # Include the wp-config.php if modified
-    - '**/*'              # Include all other files for deployment
+    - '**/*'  # Include all updated files for deployment
 
 cache:
   paths:
