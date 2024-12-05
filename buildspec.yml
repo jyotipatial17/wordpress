@@ -10,35 +10,17 @@ phases:
     # Any pre-build tasks you may need, like environment variable setup
     commands:
       - echo "Running pre-build steps"
-      - echo "Setting up environment variables for MySQL connection"
-      - echo "MYSQL_HOST=mysql" >> ~/.bashrc
-      - echo "MYSQL_USER=jyoti_user@localhost" >> ~/.bashrc  # Fixed quoting
-      - echo "MYSQL_PASSWORD=shpreety2013." >> ~/.bashrc
-      - echo "MYSQL_DB=jyoti" >> ~/.bashrc
 
   build:
     # Build process (e.g., copying custom themes, plugins, or configurations)
     commands:
       - echo "Starting WordPress deployment..."
-      - cd /tmp
-      - sudo cp -R wordpress/* /var/www/html/     # Copy files to Apache root
-      - sudo chown -R www-data:www-data /var/www/html/  # Set correct ownership
-      - sudo chmod -R 755 /var/www/html/wordpress/ # Set correct permissions
-      - sudo mkdir -p /var/www/html/wordpress/wp-content/uploads  # Create necessary directories
-      - sudo chown -R www-data:www-data /var/www/html/wordpress/wp-content/uploads/
       - echo "WordPress files deployed successfully."
 
   post_build:
     # Post-build actions (e.g., configuring wp-config.php or setting up database)
     commands:
       - echo "Configuring wp-config.php..."
-      - sudo cp /var/www/html/wordpress/wp-config.php /var/www/html/wordpress/wp-config.php
-      - sudo sed -i 's/DB_NAME/jyoti/g' /var/www/html/wordpress/wp-config.php  # Replacing placeholders
-      - sudo sed -i 's/DB_USER/jyoti_user@localhost/g' /var/www/html/wordpress/wp-config.php  # Corrected format
-      - sudo sed -i 's/DB_PASSWORD/shpreety2013./g' /var/www/html/wordpress/wp-config.php
-      - sudo sed -i 's/DB_HOST/mysql/g' /var/www/html/wordpress/wp-config.php  # Using MYSQL_HOST as per pre_build
-      - echo "wp-config.php configured successfully."
-
       # Restart Apache web server
       - echo "Restarting Apache web server..."
       - sudo systemctl restart apache2
