@@ -37,11 +37,11 @@ phases:
     commands:
       - echo "Starting WordPress deployment..."
       - sudo su
-      - sudo cp -R wordpress/* /var/www/html/
-      - sudo chown -R www-data:www-data /var/www/html/
-      - sudo chmod -R 755 /var/www/html/wordpress/
-      - sudo mkdir -p /var/www/html/wordpress/wp-content/uploads
-      - sudo chown -R www-data:www-data /var/www/html/wordpress/wp-content/uploads/
+      - cp -R wordpress /var/www/html/
+      - chown -R www-data:www-data /var/www/html/
+      - chmod -R 755 /var/www/html/wordpress/
+      - mkdir -p /var/www/html/wordpress/wp-content/uploads
+      - chown -R www-data:www-data /var/www/html/wordpress/wp-content/uploads/
       - echo "WordPress files deployed successfully."
 
   post_build:
