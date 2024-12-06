@@ -45,14 +45,28 @@ phases:
       - sudo sed -i 's/DB_HOST/localhost/g' /var/www/html/wordpress/wp-config.php  # Set DB_HOST to localhost (since MySQL is on the same EC2 instance)
 
       - echo "wp-config.php configured successfully."
+      # Use SSM to deploy to the EC2 instance
+      - echo "Deploying to EC2 instance using SSM..."
+      - >
+        INSTANCE_ID=$(aws ec2 describe-instances --query "Reservations[0].Instances[0].InstanceId" --output text --filters "Name=tag:Name,Values=YourEC2InstanceName")
+        COMMAND="sudo systemctl restart apache2"
+        aws ssm send-command \
+          --instance-ids $INSTANCE_ID \
+          --document-name "AWS-RunShellScript" \
+          --comment "Restart Apache to apply WordPress changes" \
+          --parameters 'commands=["'$COMMAND'"]'
+
+      - echo "Deployment completed successfully."
 
       # Restart Apache to apply changes
       - echo "Restarting Apache web server..."
       - sudo systemctl restart apache2
 
-artifacts:
-  files:
-    - '**/*'  # Include all updated files for deployment
+post_build:
+  commands:
+    - echo "Deploying to EC2 instance using SSH..."
+    - ssh -i /path/to/your/private-key.pem ec2-user@your-ec2-public-ip "sudo systemctl restart apache2"
+    - echo "Deployment completed successfully."
 
 cache:
   paths:
