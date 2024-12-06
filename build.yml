@@ -36,31 +36,31 @@ phases:
   build:
     commands:
       - echo "Starting WordPress deployment..."
- 
+
   post_build:
-  commands:
-    - echo "Configuring wp-config.php..."
+    commands:
+      - echo "Configuring wp-config.php..."
 
-    # Ensure the correct ownership and permissions for the directory and files
-    - sudo chown -R www-data:www-data /var/www/html/wordpress/
-    - sudo chmod -R 755 /var/www/html/wordpress/
-    - sudo chmod 644 /var/www/html/wordpress/wp-config.php
-    
-    # Check if wp-config.php exists
-    - ls -l /var/www/html/wordpress/wp-config.php
+      # Ensure the correct ownership and permissions for the directory and files
+      - sudo chown -R www-data:www-data /var/www/html/wordpress/
+      - sudo chmod -R 755 /var/www/html/wordpress/
+      - sudo chmod 644 /var/www/html/wordpress/wp-config.php
+      
+      # Check if wp-config.php exists
+      - ls -l /var/www/html/wordpress/wp-config.php
 
-    # Backup wp-config.php before modifying it
-    - sudo cp /var/www/html/wordpress/wp-config.php /var/www/html/wordpress/wp-config.php.bak || { echo "wp-config.php copy failed"; exit 1; }
+      # Backup wp-config.php before modifying it
+      - sudo cp /var/www/html/wordpress/wp-config.php /var/www/html/wordpress/wp-config.php.bak || { echo "wp-config.php copy failed"; exit 1; }
 
-    # Replace placeholders with environment variables
-    - sudo sed -i "s#DB_NAME#$MYSQL_DB#g" /var/www/html/wordpress/wp-config.php
-    - sudo sed -i "s#DB_USER#$MYSQL_USER#g" /var/www/html/wordpress/wp-config.php
-    - sudo sed -i "s#DB_PASSWORD#$MYSQL_PASSWORD#g" /var/www/html/wordpress/wp-config.php
-    - sudo sed -i "s#DB_HOST#$MYSQL_HOST#g" /var/www/html/wordpress/wp-config.php
+      # Replace placeholders with environment variables
+      - sudo sed -i "s#DB_NAME#$MYSQL_DB#g" /var/www/html/wordpress/wp-config.php
+      - sudo sed -i "s#DB_USER#$MYSQL_USER#g" /var/www/html/wordpress/wp-config.php
+      - sudo sed -i "s#DB_PASSWORD#$MYSQL_PASSWORD#g" /var/www/html/wordpress/wp-config.php
+      - sudo sed -i "s#DB_HOST#$MYSQL_HOST#g" /var/www/html/wordpress/wp-config.php
 
-    - echo "wp-config.php configured successfully."
+      - echo "wp-config.php configured successfully."
 
-    - echo "Deploying to EC2 instance using SSH..."
-    - ssh -i /tmp/id_rsa -o StrictHostKeyChecking=no ec2-user@your-ec2-public-ip "sudo systemctl restart apache2"
-    
-    - echo "Deployment completed successfully."
+      - echo "Deploying to EC2 instance using SSH..."
+      - ssh -i /tmp/id_rsa -o StrictHostKeyChecking=no ec2-user@your-ec2-public-ip "sudo systemctl restart apache2"
+      
+      - echo "Deployment completed successfully."
