@@ -2,25 +2,39 @@ version: 0.2
 
 phases:
   install:
-  commands:
-    - echo "Checking the OS and installing jq..."
-    - cat /etc/os-release
-    - sudo apt-get update -y
-    - sudo apt-get install -y jq
-    - echo "jq installed successfully."
-   
+    commands:
+      - echo "Checking the OS and installing jq..."
+      - cat /etc/os-release
+      - |
+        if [[ -f /etc/os-release ]]; then
+          . /etc/os-release
+          if [[ "$ID" == "amazon" ]]; then
+            # Amazon Linux
+            echo "Amazon Linux detected. Installing jq..."
+            curl -L -o /tmp/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+            chmod +x /tmp/jq
+            mv /tmp/jq /usr/local/bin/jq
+          elif [[ "$ID" == "ubuntu" ]]; then
+            # Ubuntu-based system
+            echo "Ubuntu detected. Installing jq..."
+            sudo apt-get update -y
+            sudo apt-get install -y jq
+          else
+            echo "Unsupported OS. Skipping jq installation."
+          fi
+        fi
+      - echo "jq installation completed."
+
   pre_build:
     commands:
-      # Retrieve the SSH private key from AWS Secrets Manager
-      - echo "Fetching SSH private key from AWS Secrets Manager..."
-      - export PRIVATE_KEY=$(aws secretsmanager get-secret-value --secret-id ssh-private-key --query SecretString --output text)
-      - echo "$PRIVATE_KEY" > /tmp/id_rsa
-      - chmod 600 /tmp/id_rsa
-      - echo "Private key stored securely."
+      - echo "Running pre-build steps..."
+      - echo "MYSQL_HOST=localhost" >> ~/.bashrc
+      - echo "MYSQL_USER=jyoti_user" >> ~/.bashrc
+      - echo "MYSQL_PASSWORD=shpreety2013." >> ~/.bashrc
+      - echo "MYSQL_DB=jyoti" >> ~/.bashrc
 
   build:
     commands:
-      # Put your WordPress deployment commands here
       - echo "Starting WordPress deployment..."
       - cd /tmp
       - sudo cp -R wordpress/* /var/www/html/
@@ -32,6 +46,12 @@ phases:
 
   post_build:
     commands:
+      - echo "Configuring wp-config.php..."
+      - sudo sed -i "s/DB_NAME/$MYSQL_DB/g" /var/www/html/wordpress/wp-config.php
+      - sudo sed -i "s/DB_USER/$MYSQL_USER/g" /var/www/html/wordpress/wp-config.php
+      - sudo sed -i "s/DB_PASSWORD/$MYSQL_PASSWORD/g" /var/www/html/wordpress/wp-config.php
+      - sudo sed -i "s/DB_HOST/$MYSQL_HOST/g" /var/www/html/wordpress/wp-config.php
+      - echo "wp-config.php configured successfully."
       - echo "Deploying to EC2 instance using SSH..."
       - ssh -i /tmp/id_rsa -o StrictHostKeyChecking=no ec2-user@your-ec2-public-ip "sudo systemctl restart apache2"
       - echo "Deployment completed successfully."
