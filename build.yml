@@ -2,11 +2,13 @@ version: 0.2
 
 phases:
   install:
-    commands:
-      # Install AWS CLI and jq (for parsing JSON, if necessary)
-      - echo "Installing necessary dependencies..."
-      - yum install -y jq
-
+  commands:
+    - echo "Checking the OS and installing jq..."
+    - cat /etc/os-release
+    - sudo apt-get update -y
+    - sudo apt-get install -y jq
+    - echo "jq installed successfully."
+   
   pre_build:
     commands:
       # Retrieve the SSH private key from AWS Secrets Manager
