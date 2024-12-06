@@ -36,16 +36,21 @@ phases:
   build:
     commands:
       - echo "Starting WordPress deployment..."
-      - sudo su
-      - cp -R wordpress /var/www/html/
-      - chown -R www-data:www-data /var/www/html/
-      - chmod -R 755 /var/www/html/wordpress/
-      - mkdir -p /var/www/html/wordpress/wp-content/uploads
-      - chown -R www-data:www-data /var/www/html/wordpress/wp-content/uploads/
-      - echo "WordPress files deployed successfully."
-
+ 
   post_build:
-    commands:
+  commands:
+    - echo "Configuring wp-config.php..."
+    
+    # Backup wp-config.php before modifying it
+    - sudo cp /var/www/html/wordpress/wp-config.php /var/www/html/wordpress/wp-config.php.bak
+
+    # Replace placeholders with environment variables
+    - sudo sed -i "s#DB_NAME#$MYSQL_DB#g" /var/www/html/wordpress/wp-config.php
+    - sudo sed -i "s#DB_USER#$MYSQL_USER#g" /var/www/html/wordpress/wp-config.php
+    - sudo sed -i "s#DB_PASSWORD#$MYSQL_PASSWORD#g" /var/www/html/wordpress/wp-config.php
+    - sudo sed -i "s#DB_HOST#$MYSQL_HOST#g" /var/www/html/wordpress/wp-config.php
+    
+    - echo "wp-config.php configured successfully."
       - echo "Configuring wp-config.php..."
       - sudo sed -i "s/DB_NAME/$MYSQL_DB/g" /var/www/html/wordpress/wp-config.php
       - sudo sed -i "s/DB_USER/$MYSQL_USER/g" /var/www/html/wordpress/wp-config.php
