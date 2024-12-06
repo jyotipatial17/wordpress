@@ -1,0 +1,39 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      # Install AWS CLI and jq (for parsing JSON, if necessary)
+      - echo "Installing necessary dependencies..."
+      - yum install -y jq
+
+  pre_build:
+    commands:
+      # Retrieve the SSH private key from AWS Secrets Manager
+      - echo "Fetching SSH private key from AWS Secrets Manager..."
+      - export PRIVATE_KEY=$(aws secretsmanager get-secret-value --secret-id ssh-private-key --query SecretString --output text)
+      - echo "$PRIVATE_KEY" > /tmp/id_rsa
+      - chmod 600 /tmp/id_rsa
+      - echo "Private key stored securely."
+
+  build:
+    commands:
+      # Put your WordPress deployment commands here
+      - echo "Starting WordPress deployment..."
+      - cd /tmp
+      - sudo cp -R wordpress/* /var/www/html/
+      - sudo chown -R www-data:www-data /var/www/html/
+      - sudo chmod -R 755 /var/www/html/wordpress/
+      - sudo mkdir -p /var/www/html/wordpress/wp-content/uploads
+      - sudo chown -R www-data:www-data /var/www/html/wordpress/wp-content/uploads/
+      - echo "WordPress files deployed successfully."
+
+  post_build:
+    commands:
+      - echo "Deploying to EC2 instance using SSH..."
+      - ssh -i /tmp/id_rsa -o StrictHostKeyChecking=no ec2-user@your-ec2-public-ip "sudo systemctl restart apache2"
+      - echo "Deployment completed successfully."
+
+cache:
+  paths:
+    - /tmp/*
