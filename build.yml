@@ -61,6 +61,6 @@ phases:
       - echo "wp-config.php configured successfully."
 
       - echo "Deploying to EC2 instance using SSH..."
-      - ssh -i /tmp/id_rsa -o StrictHostKeyChecking=no ec2-user@your-ec2-public-ip "sudo systemctl restart apache2"
+      - ssh -i /tmp/vpc_test.pem -o StrictHostKeyChecking=no ubuntu@ip-10-0-1-169 "sudo systemctl restart apache2"
       
       - echo "Deployment completed successfully."
